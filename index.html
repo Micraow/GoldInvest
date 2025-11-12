@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄金投资组合管理器</title>
+    <!-- 使用字节跳动CDN，确保国内访问速度 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #d4af37;       /* 黄金色 */
+            --secondary-color: #f0e6d2;     /* 暖白色 */
+            --dark-bg: #2c3e50;             /* 深蓝灰色 */
+            --card-bg: #ffffff;             /* 卡片背景 */
+            --light-gray: #f8f9fa;          /* 浅灰色 */
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--dark-bg), #34495e);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gold-icon {
+            background-color: var(--primary-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: #fff;
+            color: var(--dark-bg);
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+         .card-header i { color: var(--primary-color); }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #d4af37, #c19e3c);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-success { background: linear-gradient(to right, #28a745, #1e7e34); color: white; }
+        .btn-info { background: linear-gradient(to right, #17a2b8, #117a8b); color: white; }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-top: 1.5rem;
+            display: none; /* Initially hidden */
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-value { font-size: 1.6rem; font-weight: 700; }
+        .result-label { font-size: 1rem; color: #555; margin-bottom: 0.25rem; }
+
+        .portfolio-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .portfolio-table th {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .portfolio-table tr:nth-child(even) { background-color: #fdfdfd; }
+        .portfolio-table td { padding: 12px 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-delete:hover { background-color: #c0392b; }
+
+        .empty-history { text-align: center; padding: 2rem; color: #777; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer { text-align: center; padding: 2rem 0; color: #777; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="gold-icon"><i class="bi bi-safe2-fill"></i></div>
+            <h1>黄金投资组合管理器</h1>
+            <p>记录您的持仓，轻松分析盈亏与目标</p>
+        </header>
+
+        <!-- 投资信息与保存 -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-plus-circle-dotted"></i> 添加新持仓记录</div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label for="investmentAmount"><i class="bi bi-currency-yen"></i> 总投资金额</label>
+                        <div class="input-container">
+                            <i class="bi bi-cash-stack"></i>
+                            <input type="number" id="investmentAmount" placeholder="例如: 10000">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="buyPrice"><i class="bi bi-graph-up"></i> 买入时金价 (元/克)</label>
+                        <div class="input-container">
+                            <i class="bi bi-tag-fill"></i>
+                            <input type="number" id="buyPrice" placeholder="例如: 950.5">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="buyFeeRate"><i class="bi bi-percent"></i> 买入费率 (%)</label>
+                        <div class="input-container">
+                            <i class="bi bi-arrow-down-circle"></i>
+                            <input type="number" id="buyFeeRate" value="0.5" placeholder="例如: 0.5">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="sellFeeRate"><i class="bi bi-percent"></i> 卖出费率 (%)</label>
+                        <div class="input-container">
+                            <i class="bi bi-arrow-up-circle"></i>
+                            <input type="number" id="sellFeeRate" value="0.5" placeholder="例如: 0.5">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" id="addPortfolioRecord">
+                    <i class="bi bi-check-circle-fill"></i> 确认并添加为持仓记录
+                </button>
+            </div>
+        </div>
+
+        <!-- 辅助计算工具 -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-tools"></i> 辅助计算工具 (What-if 分析)</div>
+            <div class="card-body">
+                 <p class="text-muted mb-3">使用上方您填入的投资信息进行“假如”分析。</p>
+                <div class="grid-2">
+                    <div>
+                        <h5>保本价格计算</h5>
+                        <button class="btn btn-info w-100" id="calculateBreakeven"><i class="bi bi-calculator-fill"></i> 计算保本价</button>
+                        <div id="breakevenResultBox" class="result-box">
+                            <div class="result-label">保本卖出价需达到</div>
+                            <div class="result-value text-primary">-- 元/克</div>
+                        </div>
+                    </div>
+                     <div>
+                        <h5>实时盈亏计算</h5>
+                        <div class="input-group mb-2">
+                             <label for="currentPrice"><i class="bi bi-graph-up-arrow"></i> 当前金价</label>
+                             <div class="input-container">
+                                <i class="bi bi-tag"></i>
+                                <input type="number" id="currentPrice" placeholder="输入当前市场价">
+                            </div>
+                        </div>
+                        <button class="btn btn-success w-100" id="calculateCurrentPL"><i class="bi bi-search"></i> 查询盈亏</button>
+                        <div id="currentPLResult" class="result-box">
+                            <div class="result-label">若以此价格卖出，盈亏为</div>
+                            <div class="result-value">-- 元</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的持仓记录 -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-journal-album"></i> 我的持仓记录</div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="portfolio-table">
+                        <thead>
+                            <tr>
+                                <th>买入日期</th>
+                                <th>投资额 (元)</th>
+                                <th>买入价 (元/克)</th>
+                                <th>买/卖费率 (%)</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolioTableBody">
+                            <!-- 持仓记录将动态插入这里 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>黄金投资组合管理器 &copy; 2025 <a href="https://pengs.top">pengs.top</a></p>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM 元素
+        const investmentAmountEl = document.getElementById('investmentAmount');
+        const buyPriceEl = document.getElementById('buyPrice');
+        const buyFeeRateEl = document.getElementById('buyFeeRate');
+        const sellFeeRateEl = document.getElementById('sellFeeRate');
+        const addPortfolioBtn = document.getElementById('addPortfolioRecord');
+        const portfolioTableBody = document.getElementById('portfolioTableBody');
+
+        const calculateBreakevenBtn = document.getElementById('calculateBreakeven');
+        const breakevenResultBox = document.getElementById('breakevenResultBox');
+        const breakevenResultValue = breakevenResultBox.querySelector('.result-value');
+
+        const currentPriceEl = document.getElementById('currentPrice');
+        const calculateCurrentPLBtn = document.getElementById('calculateCurrentPL');
+        const currentPLResult = document.getElementById('currentPLResult');
+        const currentPLValue = currentPLResult.querySelector('.result-value');
+
+        const STORAGE_KEY = 'goldPortfolioManagerData';
+        let portfolio = [];
+
+        // --- 数据处理核心 ---
+        function loadPortfolio() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            portfolio = data ? JSON.parse(data) : [];
+            renderPortfolio();
+        }
+
+        function savePortfolio() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(portfolio));
+            renderPortfolio();
+        }
+
+        function renderPortfolio() {
+            portfolioTableBody.innerHTML = '';
+            if (portfolio.length === 0) {
+                portfolioTableBody.innerHTML = `<tr><td colspan="5" class="empty-history">暂无持仓记录，请在上方添加。</td></tr>`;
+                return;
+            }
+
+            portfolio.forEach(record => {
+                const row = document.createElement('tr');
+                const purchaseDate = new Date(record.date).toLocaleDateString('zh-CN');
+                row.innerHTML = `
+                    <td>${purchaseDate}</td>
+                    <td>${record.amount.toFixed(2)}</td>
+                    <td>${record.price.toFixed(2)}</td>
+                    <td>${record.buyFee * 100} / ${record.sellFee * 100}</td>
+                    <td><button class="btn-delete" data-id="${record.id}"><i class="bi bi-trash3-fill"></i> 删除</button></td>
+                `;
+                portfolioTableBody.appendChild(row);
+            });
+        }
+
+        // --- 事件监听 ---
+        addPortfolioBtn.addEventListener('click', () => {
+            const amount = parseFloat(investmentAmountEl.value);
+            const price = parseFloat(buyPriceEl.value);
+            const buyFee = parseFloat(buyFeeRateEl.value) / 100;
+            const sellFee = parseFloat(sellFeeRateEl.value) / 100;
+
+            if (isNaN(amount) || isNaN(price) || amount <= 0 || price <= 0) {
+                alert('请输入有效的投资金额和买入价格！');
+                return;
+            }
+            if (isNaN(buyFee) || isNaN(sellFee) || buyFee < 0 || sellFee < 0) {
+                alert('请输入有效的手续费率！');
+                return;
+            }
+
+            const newRecord = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                amount: amount,
+                price: price,
+                buyFee: buyFee,
+                sellFee: sellFee
+            };
+
+            portfolio.unshift(newRecord); // 新纪录放在最前面
+            savePortfolio();
+
+            // 清空输入框以便下次输入
+            investmentAmountEl.value = '';
+            buyPriceEl.value = '';
+            alert('持仓记录添加成功！');
+        });
+
+        portfolioTableBody.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-delete')) {
+                const btn = e.target.closest('.btn-delete');
+                const idToDelete = parseInt(btn.dataset.id);
+                if (confirm('您确定要删除这条持仓记录吗？')) {
+                    portfolio = portfolio.filter(record => record.id !== idToDelete);
+                    savePortfolio();
+                }
+            }
+        });
+
+        // --- 计算器功能 ---
+        function getCalculatorInputs() {
+            const investmentAmount = parseFloat(investmentAmountEl.value);
+            const buyPrice = parseFloat(buyPriceEl.value);
+            const buyFeeRate = parseFloat(buyFeeRateEl.value) / 100;
+            const sellFeeRate = parseFloat(sellFeeRateEl.value) / 100;
+
+            if (isNaN(investmentAmount) || isNaN(buyPrice) || investmentAmount <= 0 || buyPrice <= 0) {
+                alert('请先在“添加新持仓记录”区域输入有效的投资信息以进行计算！');
+                return null;
+            }
+            return { investmentAmount, buyPrice, buyFeeRate, sellFeeRate };
+        }
+
+        calculateBreakevenBtn.addEventListener('click', () => {
+            const inputs = getCalculatorInputs();
+            if (!inputs) return;
+
+            const breakevenPrice = inputs.buyPrice / ((1 - inputs.buyFeeRate) * (1 - inputs.sellFeeRate));
+            breakevenResultValue.textContent = `${breakevenPrice.toFixed(3)} 元/克`;
+            breakevenResultBox.classList.add('show');
+        });
+
+        calculateCurrentPLBtn.addEventListener('click', () => {
+            const inputs = getCalculatorInputs();
+            if (!inputs) return;
+
+            const currentPrice = parseFloat(currentPriceEl.value);
+            if (isNaN(currentPrice) || currentPrice <= 0) {
+                alert('请输入有效的当前金价！');
+                return;
+            }
+
+            const netInvestment = inputs.investmentAmount * (1 - inputs.buyFeeRate);
+            const goldGrams = netInvestment / inputs.buyPrice;
+
+            const netSellValue = goldGrams * currentPrice * (1 - inputs.sellFeeRate);
+            const netProfit = netSellValue - inputs.investmentAmount;
+
+            currentPLValue.textContent = `${netProfit >= 0 ? '+' : ''}${netProfit.toFixed(2)} 元`;
+            currentPLValue.style.color = netProfit >= 0 ? '#28a745' : '#e74c3c';
+            currentPLResult.classList.add('show');
+        });
+
+        // 初始化
+        loadPortfolio();
+    });
+    </script>
+</body>
+</html>
